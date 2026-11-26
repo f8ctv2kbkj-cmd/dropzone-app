@@ -506,5 +506,73 @@
 
     render();
   </script>
+ <script type="module">
+  import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+
+  const SUPABASE_URL = 'https://lyhazpapodunobwvymw.supabase.co';
+  const SUPABASE_ANON_KEY = 'sb_publishable_PQsot9wnn8GM1vfX7ga2A_bjhK3AMB';
+  const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+  async function caricaAnnunciCondivisi() {
+    const { data, error } = await supabase
+      .from('annunci')
+      .select('*')
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      console.error('Errore lettura Supabase:', error);
+      return;
+    }
+
+    if (Array.isArray(data)) {
+      window.items = data.map((row) => ({
+        id: row.id,
+        title: row.titolo,
+        price: Number(row.prezzo),
+        condition: row.condizione,
+        size: row.taglia,
+        city: row.citta,
+        image: row.immagine,
+        description: row.description || '',
+        contact: row.contatto
+      }));
+      if (typeof window.render === 'function') {
+        window.render();
+      }
+    }
+  }
+
+  const formEl = document.getElementById('sellForm') || document.querySelector('form');
+  if (formEl) {
+    formEl.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const fd = new FormData(formEl);
+
+      const payload = {
+        titolo: (fd.get('title') || '').toString().trim(),
+        prezzo: Number(fd.get('price') || 0),
+        condizione: (fd.get('condition') || '').toString().trim(),
+        taglia: (fd.get('size') || '').toString().trim(),
+        citta: (fd.get('city') || '').toString().trim(),
+        immagine: (fd.get('image') || '').toString().trim() || (typeof FALLBACK_IMG !== 'undefined' ? FALLBACK_IMG : ''),
+        contatto: (fd.get('contact') || '').toString().trim()
+      };
+
+      const { error } = await supabase.from('annunci').insert([payload]);
+      if (error) {
+        alert('Errore salvataggio annuncio: ' + error.message);
+        return;
+      }
+
+      formEl.reset();
+      if (typeof sellModal !== 'undefined' && sellModal) {
+        sellModal.classList.remove('open');
+      }
+      await caricaAnnunciCondivisi();
+    }, true);
+  }
+
+  caricaAnnunciCondivisi();
+</script>
 </body>
 </html>
