@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>DropZone — Streetwear &amp; Sneakers Usate</title>
+  <style>
+    :root {
+      --bg: #0f1115;
+      --surface: #181b22;
+      --surface-2: #222631;
+      --text: #f3f4f6;
+      --muted: #9ca3af;
+      --accent: #3b82f6;
+      --accent-hover: #2563eb;
+      --border: #2d3240;
+      --success: #22c55e;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: system-ui, -apple-system, sans-serif; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.5;
+      padding-bottom: 60px;
+    }
+
+    header {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      background: rgba(15, 17, 21, 0.9);
+      backdrop-filter: blur(10px);
+      border-bottom: 1px solid var(--border);
+      padding: 14px 20px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .logo {
+      font-size: 1.25rem;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+    }
+
+    .logo span { color: var(--accent); }
+
+    .controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      flex: 1;
+      max-width: 720px;
+      justify-content: flex-end;
+    }
+
+    input, select, textarea {
+      background: var(--surface-2);
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 9px 12px;
+      font-size: 0.92rem;
+      outline: none;
+    }
+
+    input:focus, select:focus, textarea:focus {
+      border-color: var(--accent);
+    }
+
+    .search-input { min-width: 190px; flex: 1; }
+
+    button {
+      background: var(--accent);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      padding: 9px 14px;
+      font-size: 0.92rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+
+    button:hover { background: var(--accent-hover); }
+
+    button.secondary {
+      background: var(--surface-2);
+      color: var(--text);
+      border: 1px solid var(--border);
+    }
+
+    button.secondary:hover { background: #2c3140; }
+
+    main {
+      max-width: 1100px;
+      margin: 24px auto;
+      padding: 0 20px;
+    }
+
+    .top-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 18px;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .count { color: var(--muted); font-size: 0.9rem; }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+      gap: 18px;
+    }
+
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      transition: transform 0.15s, border-color 0.15s;
+    }
+
+    .card:hover {
+      transform: translateY(-2px);
+      border-color: #42495e;
+    }
+
+    .card-img {
+      width: 100%;
+      height: 190px;
+      object-fit: cover;
+      background: var(--surface-2);
+      display: block;
+    }
+
+    .card-body {
+      padding: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      flex: 1;
+    }
+
+    .price {
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: var(--success);
+    }
+
+    .title {
+      font-weight: 600;
+      font-size: 1rem;
+    }
+
+    .badges {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .badge {
+      background: var(--surface-2);
+      color: var(--muted);
+      font-size: 0.78rem;
+      padding: 3px 8px;
+      border-radius: 6px;
+      border: 1px solid var(--border);
+    }
+
+    .city {
+      font-size: 0.85rem;
+      color: var(--muted);
+      margin-top: auto;
+    }
+
+    .card-actions {
+      display: flex;
+      gap: 8px;
+      margin-top: 8px;
+    }
+
+    .card-actions button { flex: 1; padding: 8px; font-size: 0.85rem; }
+
+    /* Modale */
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.72);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+      z-index: 30;
+    }
+
+    .modal-backdrop.open { display: flex; }
+
+    .modal {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      width: 100%;
+      max-width: 480px;
+      padding: 20px;
+      max-height: 90vh;
+      overflow-y: auto;
+    }
+
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 14px;
+    }
+
+    .close-btn {
+      background: transparent;
+      color: var(--muted);
+      font-size: 1.3rem;
+      padding: 4px 8px;
+    }
+
+    .close-btn:hover { color: var(--text); background: var(--surface-2); }
+
+    form { display: flex; flex-direction: column; gap: 12px; }
+
+    label { font-size: 0.85rem; color: var(--muted); display: flex; flex-direction: column; gap: 5px; }
+
+    .detail-img {
+      width: 100%;
+      height: 240px;
+      object-fit: cover;
+      border-radius: 10px;
+      margin-bottom: 12px;
+      background: var(--surface-2);
+    }
+
+    .note {
+      font-size: 0.8rem;
+      color: var(--muted);
+      background: var(--surface-2);
+      padding: 10px;
+      border-radius: 8px;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="logo">Drop<span>Zone</span></div>
+    <div class="controls">
+      <input id="searchInput" class="search-input" type="search" placeholder="Cerca modello, brand, taglia..." />
+      <select id="conditionFilter">
+        <option value="tutte">Tutte le condizioni</option>
+        <option value="Nuovo (DS)">Nuovo (DS)</option>
+        <option value="Come nuovo">Come nuovo</option>
+        <option value="Usato">Usato</option>
+      </select>
+      <button id="openSellBtn">+ Vendi articolo</button>
+    </div>
+  </header>
+
+  <main>
+    <div class="top-bar">
+      <div class="count" id="resultsCount"></div>
+      <button class="secondary" id="resetDemoBtn" style="padding:6px 10px;font-size:0.8rem;">Ripristina annunci demo</button>
+    </div>
+    <div class="grid" id="listingsGrid"></div>
+  </main>
+
+  <!-- Modale Pubblica Annuncio -->
+  <div class="modal-backdrop" id="sellModal">
+    <div class="modal">
+      <div class="modal-header">
+        <h3>Pubblica un annuncio</h3>
+        <button class="close-btn" id="closeSellBtn">&times;</button>
+      </div>
+      <form id="sellForm">
+        <label>
+          Titolo articolo *
+          <input type="text" name="title" required placeholder="Es. Nike Dunk Low Panda o Tech Fleece" />
+        </label>
+        <label>
+          Prezzo (€) *
+          <input type="number" name="price" min="1" step="1" required placeholder="Es. 85" />
+        </label>
+        <label>
+          Taglia
+          <input type="text" name="size" placeholder="Es. 43 oppure L" />
+        </label>
+        <label>
+          Condizione *
+          <select name="condition" required>
+            <option value="Nuovo (DS)">Nuovo (DS)</option>
+            <option value="Come nuovo">Come nuovo</option>
+            <option value="Usato">Usato</option>
+          </select>
+        </label>
+        <label>
+          Città / Zona *
+          <input type="text" name="city" required placeholder="Es. Brescia / Salò" />
+        </label>
+        <label>
+          Link foto (opzionale)
+          <input type="url" name="image" placeholder="https://..." />
+        </label>
+        <label>
+          Descrizione e dettagli (es. scatola originale, difetti)
+          <textarea name="description" rows="3" placeholder="Scrivi condizioni reali, scatola, scambio a mano o spedizione..."></textarea>
+        </label>
+        <label>
+          Contatto venditore (es. username IG o telefono) *
+          <input type="text" name="contact" required placeholder="Es. @tuo_profilo" />
+        </label>
+        <button type="submit">Pubblica annuncio</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modale Dettaglio -->
+  <div class="modal-backdrop" id="detailModal">
+    <div class="modal">
+      <div class="modal-header">
+        <h3 id="detailTitle"></h3>
+        <button class="close-btn" id="closeDetailBtn">&times;</button>
+      </div>
+      <div id="detailContent"></div>
+    </div>
+  </div>
+
+  <script>
+    const STORAGE_KEY = "dropzone_annunci_v1";
+    const FALLBACK_IMG = "https://images.unsplash.com/photo-1542291026-7eec264c27ff?auto=format&fit=crop&w=800&q=80";
+
+    const DEMO_ITEMS = [
+      {
+        id: 1,
+        title: "Sneakers Retro Running Grigio/Nero",
+        price: 75,
+        size: "43",
+        condition: "Come nuovo",
+        city: "Brescia",
+        image: "https://images.unsplash.com/photo-1542291026-7eec264c27ff?auto=format&fit=crop&w=800&q=80",
+        description: "Usate solo due volte, suola pulita, senza scatola originale. Disponibile scambio a mano.",
+        contact: "@seller_bs"
+      },
+      {
+        id: 2,
+        title: "Felpa Zip Hoodie Streetwear",
+        price: 55,
+        size: "L",
+        condition: "Usato",
+        city: "Salò",
+        image: "https://images.unsplash.com/photo-1556821840-3a63f95609a7?auto=format&fit=crop&w=800&q=80",
+        description: "Ottime condizioni generali, cerniera perfetta, nessun strappo.",
+        contact: "@street_lago"
+      },
+      {
+        id: 3,
+        title: "Sneakers Alte Edizione Limitata",
+        price: 120,
+        size: "42.5",
+        condition: "Nuovo (DS)",
+        city: "Verona",
+        image: "https://images.unsplash.com/photo-1600185365926-3a2ce3cdb9eb?auto=format&fit=crop&w=800&q=80",
+        description: "Mai indossate, ancora con etichetta e box originale.",
+        contact: "@kicks_vr"
+      }
+    ];
+
+    function loadItems() {
+      const saved = localStorage.getItem(STORAGE_KEY);
+      if (!saved) {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(DEMO_ITEMS));
+        return [...DEMO_ITEMS];
+      }
+      try {
+        return JSON.parse(saved);
+      } catch {
+        return [...DEMO_ITEMS];
+      }
+    }
+
+    function saveItems(items) {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
+    }
+
+    let items = loadItems();
+
+    const grid = document.getElementById("listingsGrid");
+    const countEl = document.getElementById("resultsCount");
+    const searchInput = document.getElementById("searchInput");
+    const conditionFilter = document.getElementById("conditionFilter");
+    const sellModal = document.getElementById("sellModal");
+    const detailModal = document.getElementById("detailModal");
+    const sellForm = document.getElementById("sellForm");
+
+    function escapeHtml(str = "") {
+      return String(str).replace(/[&<>"']/g, (m) => ({
+        "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
+      }[m]));
+    }
+
+    function render() {
+      const q = searchInput.value.trim().toLowerCase();
+      const cond = conditionFilter.value;
+
+      const filtered = items.filter((item) => {
+        const matchCond = cond === "tutte" || item.condition === cond;
+        const text = `${item.title} ${item.size} ${item.city} ${item.description}`.toLowerCase();
+        const matchQ = !q || text.includes(q);
+        return matchCond && matchQ;
+      });
+
+      countEl.textContent = `${filtered.length} ${filtered.length === 1 ? "annuncio trovato" : "annunci trovati"}`;
+
+      if (!filtered.length) {
+        grid.innerHTML = `<p style="color:var(--muted)">Nessun annuncio corrisponde ai filtri selezionati.</p>`;
+        return;
+      }
+
+      grid.innerHTML = filtered.map((item) => `
+        <article class="card">
+          <img class="card-img" src="${escapeHtml(item.image || FALLBACK_IMG)}" alt="${escapeHtml(item.title)}" onerror="this.src='${FALLBACK_IMG}'" />
+          <div class="card-body">
+            <div class="price">${Number(item.price)} €</div>
+            <div class="title">${escapeHtml(item.title)}</div>
+            <div class="badges">
+              <span class="badge">${escapeHtml(item.condition)}</span>
+              ${item.size ? `<span class="badge">Taglia ${escapeHtml(item.size)}</span>` : ""}
+            </div>
+            <div class="city">📍 ${escapeHtml(item.city)}</div>
+            <div class="card-actions">
+              <button onclick="openDetail(${item.id})">Dettagli</button>
+            </div>
+          </div>
+        </article>
+      `).join("");
+    }
+
+    window.openDetail = function(id) {
+      const item = items.find((x) => x.id === id);
+      if (!item) return;
+      document.getElementById("detailTitle").textContent = item.title;
+      document.getElementById("detailContent").innerHTML = `
+        <img class="detail-img" src="${escapeHtml(item.image || FALLBACK_IMG)}" alt="${escapeHtml(item.title)}" onerror="this.src='${FALLBACK_IMG}'" />
+        <p class="price" style="margin-bottom:8px;">${Number(item.price)} €</p>
+        <div class="badges" style="margin-bottom:12px;">
+          <span class="badge">${escapeHtml(item.condition)}</span>
+          ${item.size ? `<span class="badge">Taglia ${escapeHtml(item.size)}</span>` : ""}
+          <span class="badge">📍 ${escapeHtml(item.city)}</span>
+        </div>
+        <p style="margin-bottom:14px;color:#d1d5db;">${escapeHtml(item.description || "Nessuna descrizione aggiuntiva.")}</p>
+        <div class="note">
+          <strong>Contatto venditore:</strong> ${escapeHtml(item.contact)}<br/>
+          <em>Consiglio: per gli scambi usati incontratevi in luoghi pubblici o usate metodi tracciabili.</em>
+        </div>
+      `;
+      detailModal.classList.add("open");
+    };
+
+    document.getElementById("openSellBtn").onclick = () => sellModal.classList.add("open");
+    document.getElementById("closeSellBtn").onclick = () => sellModal.classList.remove("open");
+    document.getElementById("closeDetailBtn").onclick = () => detailModal.classList.remove("open");
+
+    sellModal.onclick = (e) => { if (e.target === sellModal) sellModal.classList.remove("open"); };
+    detailModal.onclick = (e) => { if (e.target === detailModal) detailModal.classList.remove("open"); };
+
+    sellForm.onsubmit = (e) => {
+      e.preventDefault();
+      const fd = new FormData(sellForm);
+      const newItem = {
+        id: Date.now(),
+        title: fd.get("title").trim(),
+        price: Number(fd.get("price")),
+        size: fd.get("size").trim(),
+        condition: fd.get("condition"),
+        city: fd.get("city").trim(),
+        image: fd.get("image").trim() || FALLBACK_IMG,
+        description: fd.get("description").trim(),
+        contact: fd.get("contact").trim()
+      };
+      items = [newItem, ...items];
+      saveItems(items);
+      sellForm.reset();
+      sellModal.classList.remove("open");
+      render();
+    };
+
+    document.getElementById("resetDemoBtn").onclick = () => {
+      items = [...DEMO_ITEMS];
+      saveItems(items);
+      render();
+    };
+
+    searchInput.oninput = render;
+    conditionFilter.onchange = render;
+
+    render();
+  </script>
+</body>
+</html>
